@@ -1,6 +1,9 @@
 # STAT615_Bok_Choy
 Project location for the Bok Choy group of STAT615.
 
+Slide Deck Link:
+https://docs.google.com/presentation/d/1-hCwI2j32xos0VzeYPpAjl6eBAsjGcgYEgpmC-pNkuw/edit?usp=sharing 
+
 Article Link:
 https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0296906 
 
