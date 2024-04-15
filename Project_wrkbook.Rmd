@@ -1,0 +1,56 @@
+---
+title: "stats project"
+author: "Patrick Marino"
+date: "2024-04-15"
+output: html_document
+---
+
+```{r}
+library(haven)
+art<- read_dta("insert your data here")
+View(art)
+str(art)
+```
+
+```{r}
+library(tidyverse)
+library(broom)
+art<- art %>%
+ mutate(sold = ifelse(is.na(Hammerprice), 0,1))
+
+art$Theme <- relevel(factor(art$Theme), ref = "L")
+art$Type <- relevel(factor(art$Type), ref = "oil")
+art$House <- relevel(factor(art$House), ref = "A")
+
+art <- art %>%
+  mutate(surface = SizeLengthhöjd * SizeWidthbredd) %>%
+  mutate(surface_squared = surface^2)
+
+unique(art$Month)
+
+art$Month<- substr(art$Event, 5,6)
+art$December2remember <- ifelse(art$Month == "12", 1,0)
+```
+
+
+```{r}
+probit_out <- glm(sold~Unsigned1+Theme+Type+ House+surface+surface_squared + December2remember+Artist+Year, data = art, family = binomial(link = "probit"))
+summary(probit_out)
+```
+
+```{r}
+mr<- invMillsRatio(x = probit_out)
+IMR <- mr$IMR1
+```
+
+```{r}
+Hammer_lm<- lm(log(Hammerprice)~Unsigned1+Theme+Type+ House+surface+surface_squared + December2remember+Artist+Year+IMR, data = art)
+
+summary(Hammer_lm)
+```
+
+
+
+
+
+
