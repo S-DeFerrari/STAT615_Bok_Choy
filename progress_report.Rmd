@@ -1,0 +1,70 @@
+---
+title: "prograss_report"
+author: "Emmenta Janneh"
+date: "2024-04-11"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(haven)
+library(car)
+library(tidyverse)
+library(broom)
+library(sampleSelection)
+```
+
+# Data - pone.0296906.s001.dta
+
+
+```{r}
+dat <- read_dta("./pone.0296906.s001.dta")
+glimpse(dat)
+```
+
+Data cleaning, modification, and adding a dummy variable on whether a painting was sold or not.
+
+```{r}
+dat <- mutate(dat, 
+              Artist = as.integer(Artist),
+              sold = ifelse(!is.na(Hammerprice), 1, 0),
+              Unsigned1 = factor(Unsigned1),
+              Unsigned1 = fct_relevel(Unsigned1, "0", "1"),
+              surface_cm2 = SizeLengthhöjd * SizeWidthbredd,
+              surface_squared = surface_cm2^2,
+              Type = factor(Type),
+              Type = fct_relevel(Type, "oil", "mixed", "pastel", "water colour"),
+              Theme = factor(Theme),
+              Theme = fct_relevel(Theme, "L", "A", "N", "O", "P", "PO", "S", "U"),
+              House = factor(House),
+              House = fct_relevel(House, "A", "B", "U"),
+              December = ifelse(str_ends(Event, "12.$"), 1, 0),
+              December = factor(December),
+              December = fct_relevel(December, "0", "1")
+              )
+glimpse(dat)
+```
+
+Select final variables
+```{r}
+fit_dat <- dat |> select(sold, Unsigned1, surface_cm2, surface_squared, Type, Theme, House, December, Hammerprice)
+```
+
+Fit a Probit Model
+```{r}
+probit_model <- glm(sold ~ Unsigned1 + surface_cm2 + surface_squared + Type + Theme + House + December,data = fit_dat, family = binomial(link = "probit"))
+```
+
+```{r}
+fit_dat$predicted_prob <- predict(probit_model, type = "response")
+```
+
+```{r}
+fit_dat$IMR1 <- invMillsRatio(x = probit_model)$IMR1
+```
+
+```{r}
+final_model <- lm(Hammerprice ~ Unsigned1 + surface_cm2 + surface_squared + Type + Theme + House + December + IMR1, data = fit_dat)
+tidy(final_model)
+```
+
