@@ -34,13 +34,13 @@ art$December2remember <- ifelse(art$Month == "12", 1,0)
 
 
 ```{r}
-probit_out <- glm(sold~Unsigned1+Theme+Type+ House+surface+surface_squared + December2remember+Artist+Year, data = art, family = binomial(link = "probit"))
+probit_out <- glm(sold~Unsigned1+Theme+Type+ House+surface+surface_squared + December2remember+factor(Artist)+Year, data = art, family = binomial(link = "probit"))
 summary(probit_out)
 ```
 
 ```{r}
 mr<- invMillsRatio(x = probit_out)
-IMR <- mr$IMR1
+art$IMR <- mr$IMR1
 ```
 
 ```{r}
