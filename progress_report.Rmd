@@ -26,7 +26,8 @@ Data cleaning, modification, and adding a dummy variable on whether a painting w
 
 ```{r}
 dat <- mutate(dat, 
-              Artist = as.integer(Artist),
+              Artist = factor(Artist),
+              Artist = fct_lump(Artist, n = 9),
               sold = ifelse(!is.na(Hammerprice), 1, 0),
               Unsigned1 = factor(Unsigned1),
               Unsigned1 = fct_relevel(Unsigned1, "0", "1"),
@@ -40,23 +41,20 @@ dat <- mutate(dat,
               House = fct_relevel(House, "A", "B", "U"),
               December = ifelse(str_ends(Event, "12.$"), 1, 0),
               December = factor(December),
-              December = fct_relevel(December, "0", "1")
+              December = fct_relevel(December, "0", "1"),
+              Year = factor(Year)
               )
 glimpse(dat)
 ```
 
 Select final variables
 ```{r}
-fit_dat <- dat |> select(sold, Unsigned1, surface_cm2, surface_squared, Type, Theme, House, December, Hammerprice)
+fit_dat <- dat |> select(sold, Artist, Year, Unsigned1, surface_cm2, surface_squared, Type, Theme, House, December, Hammerprice)
 ```
 
 Fit a Probit Model
 ```{r}
-probit_model <- glm(sold ~ Unsigned1 + surface_cm2 + surface_squared + Type + Theme + House + December,data = fit_dat, family = binomial(link = "probit"))
-```
-
-```{r}
-fit_dat$predicted_prob <- predict(probit_model, type = "response")
+probit_model <- glm(sold ~ Unsigned1 + surface_cm2 + surface_squared + Type + Theme + House + December + Artist + Year ,data = fit_dat, family = binomial(link = "probit"))
 ```
 
 ```{r}
@@ -64,7 +62,7 @@ fit_dat$IMR1 <- invMillsRatio(x = probit_model)$IMR1
 ```
 
 ```{r}
-final_model <- lm(Hammerprice ~ Unsigned1 + surface_cm2 + surface_squared + Type + Theme + House + December + IMR1, data = fit_dat)
-tidy(final_model)
+final_model <- lm(log(Hammerprice) ~ Unsigned1 + surface_cm2 + surface_squared + Type + Theme + House + December + IMR1 + Artist + Year, data = fit_dat)
+tidy(final_model, conf.int = TRUE)
 ```
 
