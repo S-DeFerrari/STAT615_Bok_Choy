@@ -1,0 +1,235 @@
+---
+title: "stats project"
+author: "BokCHOY"
+date: "2024-04-25"
+output: html_document
+---
+
+```{r}
+
+library(haven)
+library(sampleSelection)
+library(fastDummies)
+art<- read_dta("journal.pone.0296906.s001.dta")
+```
+
+```{r}
+library(tidyverse)
+library(broom)
+
+art<- art %>%
+ mutate(sold = ifelse(is.na(Hammerprice), 0,1))
+
+art$Theme <- relevel(factor(art$Theme), ref = "L")
+art$Type <- relevel(factor(art$Type), ref = "oil")
+art$House <- relevel(factor(art$House), ref = "A")
+
+art <- art %>%
+  mutate(surface = SizeLengthhöjd * SizeWidthbredd) %>%
+  mutate(surface_squared = surface^2)
+
+art$Month<- substr(art$Event, 5,6)
+art$December2remember <- ifelse(art$Month == "12", 1,0)
+```
+
+
+```{r}
+
+type_counts <- table(art$Event)
+type_percentages <- prop.table(type_counts) * 100
+type_percentages <- round(type_percentages, 2)  # rounding to two decimal places
+type_summary <- data.frame(Count = type_counts, Percentage = type_percentages) # Combine counts and percentages into a dataframe
+print(type_summary)
+```
+
+
+### Figure 1: Descriptive Statistics for Data Set
+
+```{r}
+# Number of Paintings
+print(paste("Number of Paintings:", nrow(art)))
+
+# Number of artists, they are stored as numbers so we just take the max
+num_unique_values <- max(art$Artist)
+print(paste("Number of Artists:", num_unique_values))
+
+# Paintings Sold
+num_ones <- sum(art$sold == 1)
+print(paste("Count of Paintings Sold:", num_ones, "|| Percentage of Paintings Sold:", round(num_ones/nrow(art),4)*100))
+
+```
+```{r}
+# Painting Technique
+type_counts <- table(art$Type)
+type_percentages <- prop.table(type_counts) * 100
+type_percentages <- round(type_percentages, 2)  # rounding to two decimal places
+type_summary <- data.frame(Count = type_counts, Percentage = type_percentages) # Combine counts and percentages into a dataframe
+print(type_summary)
+```
+
+```{r}
+# Art House
+type_counts <- table(art$House)
+type_percentages <- prop.table(type_counts) * 100
+type_percentages <- round(type_percentages, 2)  # rounding to two decimal places
+type_summary <- data.frame(Count = type_counts, Percentage = type_percentages) # Combine counts and percentages into a dataframe
+print(type_summary)
+```
+```{r}
+# Sold in December
+num_ones <- sum(art$December2remember == 1)
+print(paste("Count of Paintings Sold in December:", num_ones, "|| Percentage of Paintings Sold in December:", round(num_ones/nrow(art),4)*100))
+```
+NOTE: On the table in the article, the count of December paintings sales is listed as 3328 and 50.69%. After examining our code we believe that the researchers may have swapped the numbers for December between December and Non-December.
+
+### Figure 2: Mean and Standard Deviation for Columns by All, Sold, and Unsold
+```{r}
+# convert this to NAs and then split
+art$Pricereal[art$Pricereal == 0] <- NA
+# Create dummy variables for the 'Type' column
+art = dummy_cols(art, select_columns = "Type")
+art = dummy_cols(art, select_columns = "Theme")
+art = dummy_cols(art, select_columns = "Theme2")
+art = dummy_cols(art, select_columns = "House")
+
+sold_paintings <- art[art$sold == 1, ]
+unsold_paintings <- art[art$sold == 0, ]
+
+# Function to calculate mean and standard deviation for specific columns
+calc_stats <- function(df) {
+  # Specify columns for which you want to calculate statistics
+  columns <- c('Pricereal', 'Unsigned1', 'surface', 'surface_squared')
+  
+  # Calculate mean and standard deviation for specified columns
+  stats <- sapply(df[columns], function(x) ifelse(is.factor(x), mean(as.numeric(x)), mean(x)))
+  sds <- sapply(df[columns], function(x) ifelse(is.factor(x), sd(as.numeric(x)), sd(x)))
+  
+  return(data.frame(Mean = stats, SD = sds))
+}
+
+# Calculate statistics for paintings
+total_stats = calc_stats(art)
+sold_stats = calc_stats(sold_paintings)
+unsold_stats = calc_stats(unsold_paintings)
+
+
+print(total_stats)
+
+```
+NOTE: No output for price, please see statistics for sold paintings for hammer price
+
+```{r}
+print("Stats for Full Data")
+dataset = art
+print("Stats for Sold Data")
+dataset = sold_paintings
+print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
+print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
+print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
+print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
+print("Theme 1")
+print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
+print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
+print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
+print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
+print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
+print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
+print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
+print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
+print("Theme 2")
+print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
+print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
+print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
+print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
+print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
+print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
+print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
+print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
+print("Art House")
+print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
+print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
+print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
+
+```
+
+
+
+
+```{r}
+# Print the statistics for sold paintings
+print(sold_stats)
+```
+
+```{r}
+print("Stats for Sold Data")
+dataset = sold_paintings
+print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
+print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
+print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
+print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
+print("Theme 1")
+print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
+print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
+print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
+print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
+print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
+print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
+print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
+print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
+print("Theme 2")
+print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
+print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
+print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
+print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
+print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
+print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
+print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
+print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
+print("Art House")
+print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
+print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
+print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
+
+```
+
+
+```{r}
+# Print the statistics for unsold paintings
+print(unsold_stats)
+```
+
+```{r}
+print("Stats for Unsold Data")
+dataset = unsold_paintings
+print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
+print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
+print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
+print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
+print("Theme 1")
+print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
+print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
+print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
+print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
+print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
+print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
+print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
+print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
+print("Theme 2")
+print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
+print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
+print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
+print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
+print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
+print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
+print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
+print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
+print("Art House")
+print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
+print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
+print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
+
+```
+
+
+
+
