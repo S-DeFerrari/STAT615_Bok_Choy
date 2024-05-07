@@ -121,35 +121,15 @@ NOTE: No output for price, please see statistics for sold paintings for hammer p
 ```{r}
 print("Stats for Full Data")
 dataset = art
-print("Stats for Sold Data")
-dataset = sold_paintings
-print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
-print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
-print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
-print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
-print("Theme 1")
-print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
-print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
-print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
-print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
-print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
-print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
-print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
-print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
-print("Theme 2")
-print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
-print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
-print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
-print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
-print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
-print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
-print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
-print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
-print("Art House")
-print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
-print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
-print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
 
+variables <- c("Type_mixed", "Type_oil", "Type_pastel", "Type_water colour",
+               "Theme_L", "Theme_A", "Theme_N", "Theme_O", "Theme_P", "Theme_PO",
+               "Theme_S", "Theme_U", "Theme2_L", "Theme2_A", "Theme2_N", "Theme2_O","Theme2_P", "Theme2_PO", "Theme2_S", "Theme2_U", "House_A", "House_B", "House_U")
+
+for (variable in variables) {
+  print(paste("Mean -", variable, ":", round(mean(dataset[[variable]]), 3),
+              " Standard Dev -", variable, ":", round(sd(dataset[[variable]]), 3)))
+}
 ```
 
 
@@ -163,33 +143,10 @@ print(sold_stats)
 ```{r}
 print("Stats for Sold Data")
 dataset = sold_paintings
-print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
-print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
-print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
-print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
-print("Theme 1")
-print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
-print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
-print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
-print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
-print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
-print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
-print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
-print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
-print("Theme 2")
-print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
-print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
-print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
-print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
-print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
-print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
-print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
-print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
-print("Art House")
-print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
-print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
-print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
-
+for (variable in variables) {
+  print(paste("Mean -", variable, ":", round(mean(dataset[[variable]]), 3),
+              " Standard Dev -", variable, ":", round(sd(dataset[[variable]]), 3)))
+}
 ```
 
 
@@ -201,32 +158,10 @@ print(unsold_stats)
 ```{r}
 print("Stats for Unsold Data")
 dataset = unsold_paintings
-print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
-print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
-print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
-print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
-print("Theme 1")
-print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
-print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
-print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
-print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
-print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
-print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
-print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
-print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
-print("Theme 2")
-print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
-print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
-print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
-print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
-print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
-print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
-print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
-print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
-print("Art House")
-print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
-print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
-print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
+for (variable in variables) {
+  print(paste("Mean -", variable, ":", round(mean(dataset[[variable]]), 3),
+              " Standard Dev -", variable, ":", round(sd(dataset[[variable]]), 3)))
+}
 
 ```
 
