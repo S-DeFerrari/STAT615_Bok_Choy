@@ -1,0 +1,512 @@
+---
+title: "Untitled"
+author: "Patrick Marino"
+date: "2024-04-26"
+output: pdf_document
+---
+
+
+Summmary Statistics 
+
+```{r}
+library(haven)
+library(sampleSelection)
+library(fastDummies)
+art<- read_dta("C:\\Users\\pjm11\\Downloads\\pone.0296906.s001 (1).dta")
+```
+
+
+```{r}
+library(tidyverse)
+library(broom)
+
+art<- art %>%
+ mutate(sold = ifelse(is.na(Hammerprice), 0,1))
+
+art$Theme <- relevel(factor(art$Theme), ref = "L")
+art$Type <- relevel(factor(art$Type), ref = "oil")
+art$House <- relevel(factor(art$House), ref = "A")
+
+art <- art %>%
+  mutate(surface = SizeLengthhöjd * SizeWidthbredd) %>%
+  mutate(surface_squared = surface^2)
+
+art$Month<- substr(art$Event, 5,6)
+art$December2remember <- ifelse(art$Month == "12", 1,0)
+```
+
+```{r}
+
+type_counts <- table(art$Event)
+type_percentages <- prop.table(type_counts) * 100
+type_percentages <- round(type_percentages, 2)  # rounding to two decimal places
+type_summary <- data.frame(Count = type_counts, Percentage = type_percentages) # Combine counts and percentages into a dataframe
+print(type_summary)
+```
+
+
+### Figure 1: Descriptive Statistics for Data Set
+
+```{r}
+# Number of Paintings
+print(paste("Number of Paintings:", nrow(art)))
+
+# Number of artists, they are stored as numbers so we just take the max
+num_unique_values <- max(art$Artist)
+print(paste("Number of Artists:", num_unique_values))
+
+# Paintings Sold
+num_ones <- sum(art$sold == 1)
+print(paste("Count of Paintings Sold:", num_ones, "|| Percentage of Paintings Sold:", round(num_ones/nrow(art),4)*100))
+```
+
+```{r}
+# Painting Technique
+type_counts <- table(art$Type)
+type_percentages <- prop.table(type_counts) * 100
+type_percentages <- round(type_percentages, 2)  # rounding to two decimal places
+type_summary <- data.frame(Count = type_counts, Percentage = type_percentages) # Combine counts and percentages into a dataframe
+print(type_summary)
+```
+
+```{r}
+# Art House
+type_counts <- table(art$House)
+type_percentages <- prop.table(type_counts) * 100
+type_percentages <- round(type_percentages, 2)  # rounding to two decimal places
+type_summary <- data.frame(Count = type_counts, Percentage = type_percentages) # Combine counts and percentages into a dataframe
+print(type_summary)
+```
+
+```{r}
+# Sold in December
+num_ones <- sum(art$December2remember == 1)
+print(paste("Count of Paintings Sold in December:", num_ones, "|| Percentage of Paintings Sold in December:", round(num_ones/nrow(art),4)*100))
+```
+
+NOTE: On the table in the article, the count of December paintings sales is listed as 3328 and 50.69%. After examining our code we believe that the researchers may have swapped the numbers for December between December and Non-December.
+
+### Figure 2: Mean and Standard Deviation for Columns by All, Sold, and Unsold
+```{r}
+# convert this to NAs and then split
+art$Pricereal[art$Pricereal == 0] <- NA
+# Create dummy variables for the 'Type' column
+art = dummy_cols(art, select_columns = "Type")
+art = dummy_cols(art, select_columns = "Theme")
+art = dummy_cols(art, select_columns = "Theme2")
+art = dummy_cols(art, select_columns = "House")
+
+sold_paintings <- art[art$sold == 1, ]
+unsold_paintings <- art[art$sold == 0, ]
+
+# Function to calculate mean and standard deviation for specific columns
+calc_stats <- function(df) {
+  # Specify columns for which you want to calculate statistics
+  columns <- c('Pricereal', 'Unsigned1', 'surface', 'surface_squared')
+  
+  # Calculate mean and standard deviation for specified columns
+  stats <- sapply(df[columns], function(x) ifelse(is.factor(x), mean(as.numeric(x)), mean(x)))
+  sds <- sapply(df[columns], function(x) ifelse(is.factor(x), sd(as.numeric(x)), sd(x)))
+  
+  return(data.frame(Mean = stats, SD = sds))
+}
+
+# Calculate statistics for paintings
+total_stats = calc_stats(art)
+sold_stats = calc_stats(sold_paintings)
+unsold_stats = calc_stats(unsold_paintings)
+
+
+print(total_stats)
+
+```
+
+NOTE: No output for price, please see statistics for sold paintings for hammer price
+
+```{r}
+print("Stats for Full Data")
+dataset = art
+print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
+print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
+print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
+print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
+print("Theme 1")
+print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
+print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
+print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
+print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
+print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
+print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
+print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
+print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
+print("Theme 2")
+print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
+print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
+print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
+print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
+print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
+print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
+print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
+print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
+print("Art House")
+print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
+print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
+print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
+
+```
+
+
+```{r}
+# Print the statistics for sold paintings
+print(sold_stats)
+```
+
+
+```{r}
+print("Stats for Sold Data")
+dataset = sold_paintings
+print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
+print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
+print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
+print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
+print("Theme 1")
+print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
+print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
+print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
+print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
+print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
+print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
+print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
+print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
+print("Theme 2")
+print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
+print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
+print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
+print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
+print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
+print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
+print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
+print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
+print("Art House")
+print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
+print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
+print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
+```
+
+```{r}
+# Print the statistics for unsold paintings
+print(unsold_stats)
+```
+
+```{r}
+print("Stats for Unsold Data")
+dataset = unsold_paintings
+print(paste("Mean - Mixed:", round(mean(dataset$Type_mixed),3), " Standard Dev - Mixed:", round(sd(dataset$Type_mixed),3)))
+print(paste("Mean - Oil:", round(mean(dataset$Type_oil),3), " Standard Dev - Oil:", round(sd(dataset$Type_oil),2)))
+print(paste("Mean - Pastel:", round(mean(dataset$Type_pastel),3), " Standard Dev - Pastel:", round(sd(dataset$Type_pastel),3)))
+print(paste("Mean - Water colour:", round(mean(dataset$'Type_water colour'),3), " Standard Dev - Water Colour:", round(sd(dataset$'Type_water colour'),3)))
+print("Theme 1")
+print(paste("Mean - L:", round(mean(dataset$Theme_L),3), " Standard Dev - L:", round(sd(dataset$Theme_L),3)))
+print(paste("Mean - A:", round(mean(dataset$Theme_A),3), " Standard Dev - A", round(sd(dataset$Theme_A),2)))
+print(paste("Mean - N:", round(mean(dataset$Theme_N),3), " Standard Dev - N:", round(sd(dataset$Theme_N),3)))
+print(paste("Mean - O:", round(mean(dataset$Theme_O),3), " Standard Dev - O:", round(sd(dataset$Theme_O),3)))
+print(paste("Mean - P:", round(mean(dataset$Theme_P),3), " Standard Dev - P:", round(sd(dataset$Theme_P),3)))
+print(paste("Mean - PO:", round(mean(dataset$Theme_PO),3), " Standard Dev - PO:", round(sd(dataset$Theme_PO),3)))
+print(paste("Mean - S:", round(mean(dataset$Theme_S),3), " Standard Dev - S:", round(sd(dataset$Theme_S),3)))
+print(paste("Mean - U:", round(mean(dataset$Theme_U),3), " Standard Dev - U:", round(sd(dataset$Theme_U),3)))
+print("Theme 2")
+print(paste("Mean - 2L:", round(mean(dataset$Theme2_L),3), " Standard Dev - 2L:", round(sd(dataset$Theme2_L),3)))
+print(paste("Mean - 2A:", round(mean(dataset$Theme2_A),3), " Standard Dev - 2A", round(sd(dataset$Theme2_A),2)))
+print(paste("Mean - 2N:", round(mean(dataset$Theme2_N),3), " Standard Dev - 2N:", round(sd(dataset$Theme2_N),3)))
+print(paste("Mean - 2O:", round(mean(dataset$Theme2_O),3), " Standard Dev - 2O:", round(sd(dataset$Theme2_O),3)))
+print(paste("Mean - 2P:", round(mean(dataset$Theme2_P),3), " Standard Dev - 2P:", round(sd(dataset$Theme2_P),3)))
+print(paste("Mean - 2PO:", round(mean(dataset$Theme2_PO),3), " Standard Dev - 2PO:", round(sd(dataset$Theme2_PO),3)))
+print(paste("Mean - 2S:", round(mean(dataset$Theme2_S),3), " Standard Dev - 2S:", round(sd(dataset$Theme2_S),3)))
+print(paste("Mean - 2U:", round(mean(dataset$Theme2_U),3), " Standard Dev - 2U:", round(sd(dataset$Theme2_U),3)))
+print("Art House")
+print(paste("Mean - A:", round(mean(dataset$House_A),3), " Standard Dev - A:", round(sd(dataset$House_A),3)))
+print(paste("Mean - B:", round(mean(dataset$House_B),3), " Standard Dev - B", round(sd(dataset$House_B),2)))
+print(paste("Mean - U:", round(mean(dataset$House_U),3), " Standard Dev - U:", round(sd(dataset$House_U),3)))
+
+```
+
+
+
+
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(haven)
+library(car)
+library(tidyverse)
+library(broom)
+library(sampleSelection)
+```
+
+
+
+
+###Regression Models 
+
+
+```{r}
+dat <- read_dta("C:\\Users\\pjm11\\Downloads\\pone.0296906.s001 (1).dta")
+glimpse(dat)
+```
+### Data cleaning and transformations 
+
+Cleaned variables, created indicators for Artist, Unsigned (whether or not a painting is signed), sold (whether a painting was sold), Theme (the theme of the painting), House (the auction house a painting was sold at), December (if a painting was sold in December), and the type of paint that was used (oil as the reference). 
+
+Created variable for surface area in cm, surface area squared in cm.
+
+Created variable for the fraction of paintings that were sold at the previous auction. 
+
+
+
+```{r}
+library(tidyverse)
+dat <- dat  %>%
+ mutate(sold = ifelse(is.na(Hammerprice), 0,1))
+
+dat$Theme <- relevel(factor(art$Theme), ref = "L")
+dat$Type <- relevel(factor(art$Type), ref = "oil")
+dat$House <- relevel(factor(art$House), ref = "A")
+dat$Theme2 <- relevel(factor(art$Theme2), ref = "L")
+dat <- dat %>%
+  mutate(surface = SizeLengthhöjd * SizeWidthbredd) %>%
+  mutate(surface_squared = surface^2)
+
+
+
+dat$Month<- substr(art$Event, 5,6)
+dat$December2remember <- ifelse(art$Month == "12", 1,0)
+
+dat$Artist<-as.factor(art$Artist)
+
+dat$December2remember <- as.factor(art$December2remember)
+dat[, c("sold", "Unsigned1")] <- lapply(art[, c("sold","Unsigned1")], as.factor)
+glimpse(dat)
+
+#create a fraction sold at previous event restriction variable
+unique(dat$Event)
+dat <- dat[order(dat$Event), ]
+fraction_sold_by_event <- aggregate(sold ~ Event, data = dat, FUN = function(x) sum(x == 1) / length(x))
+event_index <- match(dat$Event, fraction_sold_by_event$Event)
+previous_event_index <- event_index - 1
+dat$fraction_sold_previous_event <- NA
+
+for (i in 1:nrow(dat)) {
+  if (previous_event_index[i] >= 1) {
+    dat$fraction_sold_previous_event[i] <- fraction_sold_by_event$sold[previous_event_index[i]]
+  } else {
+    dat$fraction_sold_previous_event[i] <- 0
+  }
+}
+```
+
+```{r}
+artist_counts <- dat %>%
+  group_by(Artist) %>%
+  summarize(n = n())
+
+dat <- dat %>% 
+   mutate(
+    artists = if_else(
+      Artist %in% artist_counts$Artist[artist_counts$n >= 10],
+      Artist,
+      "other artist"
+    )
+  )
+
+
+
+
+```
+
+
+
+
+### Probit Model 
+
+Fit a probit model on sold, including an exclusion restriction variable for the fraction of art sold at previous auction 
+
+```{r}
+probit_model <- glm(sold ~ Unsigned1 + surface + surface_squared + Type + Theme + House + December2remember + fraction_sold_previous_event+artists  +Year ,data = dat, family = binomial(link = "probit"))
+```
+
+
+Inverse mills ratio
+Used an inverse mills ratio to account for selection bias
+
+*side note: this the lambda from the journals regression tables. 
+
+```{r}
+dat$IMR <- invMillsRatio(x = probit_model)$IMR1
+```
+
+
+### Multivariate Model 
+
+Fit a multivariate regression model on log Hammerprice, which is the price a piece sold for converted using a deflator based on the Swedish CPI. 
+
+```{r}
+final_model <- lm(log(Hammerprice) ~ Unsigned1 + surface + surface_squared + Type + Theme + House + December2remember + IMR + artists + Year, data = dat)
+
+```
+
+### Probit Model Output and MLR Output 
+
+From table 3 in the article
+
+note: this is the visual approach that will be discussed imminently. 
+
+```{r}
+summary(probit_model)
+summary(final_model)
+
+
+```
+
+### Comparison of Visual Model and Terminological Model 
+
+After fitting their the authors employed two different approaches for evaluating the theme of a painting: the visual approach and the terminological approach. 
+
+The terminological approach involves using a paintings title to thematically categorize a painting. 
+This model incorporates a Theme2 variable which contains observations that lack a theme, which is denoted by "0". 
+
+The visual approach, for which the authors are attempting to assert superiority for, involves establishing a paintings theme by visually categorizing them.
+
+The authors fit two models, identical outside of the theme variable 
+
+
+
+ 
+
+###Visual approach 
+
+Utilizes Theme variable in the visual approach. 
+
+
+Fit a probit model on sold, including an exclusion restriction variable for the fraction of art sold at previous auction 
+
+```{r}
+visual_model_probit <- glm(sold ~ Unsigned1 + surface + surface_squared + Type + Theme + House + December2remember + fraction_sold_previous_event+artists  +Year ,data = dat, family = binomial(link = "probit"))
+```
+
+
+Fit a multivariate regression model on log Hammerprice, which is the price a piece sold for converted using a deflater based on the Swedish CPI. 
+
+```{r}
+visual_lm <- lm(log(Hammerprice) ~ Unsigned1 + surface + surface_squared + Type + Theme + House + December2remember + IMR + artists + Year, data = dat)
+
+
+
+```
+
+
+### Output from the visual approach 
+
+note: this is the same output as above
+
+```{r}
+summary(visual_model_probit)
+summary(visual_lm)
+```
+
+
+
+
+###Terminological Approach
+``
+
+
+
+probit using Theme2 instead of Theme
+
+```{r}
+Terminological_model_probit <- glm(sold ~ Unsigned1 + surface + surface_squared + Type + Theme2 + House + December2remember + fraction_sold_previous_event+ artists  +Year ,data = dat, family = binomial(link = "probit"))
+
+
+```
+
+```{r}
+dat$IMR <- invMillsRatio(x = probit_model)$IMR1
+```
+
+multivariate, again, using Theme2 instead of Theme
+
+```{r}
+Terminological_lm <- lm(log(Hammerprice) ~ Unsigned1 + surface + surface_squared + Type + Theme2 + House + December2remember + IMR + artists + Year, data = dat)
+
+
+```
+
+
+```{r}
+summary(Terminological_model_probit)
+summary(Terminological_lm)
+
+```
+
+
+###Afterword
+
+We failed to reproduce the exact coefficients of the models employed in the journal. While our coefficients were close for most predictor variables, ultimately we fell short of our mark. We believe that this is due to an undefined "constant" that appears in both the probit and multivariate models. There was no mention throughout the article of what this ambiguous constant is, and the data set does not contain any variables that logically should be included as a constant, that were not already as predictors. The models incorporate both artist and year fixed effects, but specify that they do not include their coefficients, or estimated impact in their regression tables. The undefined constant has both a listed coefficient in all models.
+
+
+Assumptions 
+```{r}
+residuals_dfv <- augment(visual_lm)
+
+
+plot(residuals_df$.fitted, residuals_df$.resid,
+     xlab = "Fitted values",
+     ylab = "Residuals",
+     main = "Residuals vs Fitted Plot - Visual")
+
+
+abline(h = 0, col = "red")
+```
+
+Assumptions appear to check out. Residuals appear to have mean 0, and constant variance. 
+
+```{r}
+residuals_dft <- augment(Terminological_lm)
+
+
+plot(residuals_df$.fitted, residuals_df$.resid,
+     xlab = "Fitted values",
+     ylab = "Residuals",
+     main = "Residuals vs Fitted Plot- Terminological")
+
+
+abline(h = 0, col = "red")
+```
+
+
+```{r}
+qqnorm(residuals_dfv$.std.resid, main = "QQ Plot of Visual Model")
+qqline(residuals_dfv$.std.resid)
+
+qqnorm(residuals_dft$.std.resid, main = "QQ Plot of Terminological Model")
+qqline(residuals_dft$.std.resid)
+
+
+```
+
+
+
+```{r}
+Anova(Terminological_lm)
+Anova(visual_lm)
+```
+
+
+
+
+
+
+
+
+
+
